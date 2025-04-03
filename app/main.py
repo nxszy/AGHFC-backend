@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from app.routers import restaurants
-from config import settings
-import firebase_admin
+from app.core.middleware import AuthMiddleware
 
 app = FastAPI()
 
-app.include_router(restaurants.router)
+app.add_middleware(AuthMiddleware)
 
-firebase_admin.initialize_app() 
+app.include_router(restaurants.router)
 
 @app.get("/")
 async def test():
