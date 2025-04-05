@@ -1,10 +1,14 @@
-from fastapi import Request, HTTPException
+from typing import Any, Callable
+
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.firebase_auth import verify_firebase_token
 
+
 class AuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next: Callable) -> Any:
         if request.url.path.startswith("/docs") or request.url.path.startswith("/openapi.json"):
             return await call_next(request)
 
