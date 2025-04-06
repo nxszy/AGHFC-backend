@@ -1,6 +1,9 @@
 services:
   backend:
-    build: ./
+    build:
+      context: ./
+      args:
+        ENV: ${ENV}
     volumes:
       - .:/code
     ports:
