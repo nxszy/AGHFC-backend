@@ -8,7 +8,13 @@ RUN poetry config virtualenvs.create false
 
 COPY pyproject.toml poetry.lock* ./
 
-RUN poetry install --only main --no-interaction --no-ansi
+ARG ENV=dev
+
+RUN if [ "$ENV" = "dev" ]; then \
+        poetry install --with dev --no-interaction --no-ansi ; \
+    else \
+        poetry install --only main --no-interaction --no-ansi ; \
+    fi
 
 COPY . .
 

@@ -3,9 +3,7 @@ import uuid
 from pydantic import BaseModel, PrivateAttr
 
 
-class Restaurant(BaseModel):
+class SpecialOffer(BaseModel):
     _id: str = PrivateAttr(default_factory=lambda: str(uuid.uuid4()))
-    name: str
-    city: str
-    address: str
-    special_offers: list[str] = []
+    dish_id: str
+    new_price: float
