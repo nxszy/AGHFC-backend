@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class FirebaseConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="firebase_")
+    service_account_json: dict
+    database_url: str
     project_id: str
     public_keys_url: str
 

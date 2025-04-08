@@ -2,6 +2,7 @@ from functools import lru_cache
 from typing import Any
 
 import firebase_admin  # type: ignore
+from firebase_admin import credentials  # type: ignore
 import jwt
 import requests
 from fastapi import HTTPException
@@ -11,7 +12,14 @@ from google.oauth2 import id_token
 from app.config import settings
 
 if not firebase_admin._apps:
-    firebase_admin.initialize_app()
+    cred = credentials.Certificate(settings.firebase_config.service_account_json)
+    firebase_admin.initialize_app(
+    cred,
+    {
+        "databaseURL": settings.firebase_config.database_url,
+    },
+)
+
 
 
 @lru_cache()
