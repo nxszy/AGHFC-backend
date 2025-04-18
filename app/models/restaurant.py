@@ -1,11 +1,9 @@
-import uuid
-
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel
 
 
 class Restaurant(BaseModel):
-    _id: str = PrivateAttr(default_factory=lambda: str(uuid.uuid4()))
     name: str
     city: str
     address: str
+    opening_hours: str
     special_offers: list[str] = []

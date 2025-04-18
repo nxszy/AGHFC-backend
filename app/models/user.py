@@ -1,7 +1,6 @@
-import uuid
 from enum import Enum
 
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel
 
 
 class UserRole(str, Enum):
@@ -11,7 +10,6 @@ class UserRole(str, Enum):
 
 
 class User(BaseModel):
-    _id: str = PrivateAttr(default_factory=lambda: str(uuid.uuid4()))
     email: str
     role: UserRole
     restaurant_id: str

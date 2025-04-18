@@ -5,13 +5,20 @@ import firebase_admin  # type: ignore
 import jwt
 import requests
 from fastapi import HTTPException
+from firebase_admin import credentials
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 
 from app.config import settings
 
 if not firebase_admin._apps:
-    firebase_admin.initialize_app()
+    cred = credentials.Certificate(settings.firebase_config.service_account_json)
+    firebase_admin.initialize_app(
+        cred,
+        {
+            "databaseURL": settings.firebase_config.database_url,
+        },
+    )
 
 
 @lru_cache()

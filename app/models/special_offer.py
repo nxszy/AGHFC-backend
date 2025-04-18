@@ -1,9 +1,6 @@
-import uuid
-
-from pydantic import BaseModel, PrivateAttr
+from pydantic import BaseModel
 
 
 class SpecialOffer(BaseModel):
-    _id: str = PrivateAttr(default_factory=lambda: str(uuid.uuid4()))
     dish_id: str
     new_price: float
