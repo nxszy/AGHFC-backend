@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Dict
 
 from pydantic import BaseModel
 
@@ -12,9 +13,12 @@ class OrderStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class Order(BaseModel):
-    user_id: str
+class CreateOrderPayload(BaseModel):
+    order_items: Dict[str, int]
     restaurant_id: str
-    dishes: list[str]
+
+
+class Order(CreateOrderPayload):
+    user_id: str
     total_price: float
     status: OrderStatus = OrderStatus.CHECKOUT
