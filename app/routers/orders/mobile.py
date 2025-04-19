@@ -52,3 +52,20 @@ async def update(
     db_ref.collection(CollectionNames.ORDERS).document(order_data.id).set(persisted_data)
 
     return JSONResponse(content=order.model_dump(), status_code=status.HTTP_201_CREATED)
+
+@router.get("/{order_id}")
+async def get_single_order(
+    order_id: str,
+    request: Request,
+    db_ref: firestore.Client = Depends(get_database_ref)
+) -> Response:
+    """Get a single order.
+
+    Returns:
+        dict: A dictionary containing order with specified order id
+    """
+    order = check_order_validity_and_ownership(order_id, None, request.state.user, db_ref)
+    order.id = order_id
+
+    return JSONResponse(content=order.model_dump(), status_code=status.HTTP_201_CREATED)
+

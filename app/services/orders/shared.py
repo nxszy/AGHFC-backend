@@ -46,7 +46,7 @@ def check_restaurant_dishes_existence(order: CreateOrderPayload, db_ref: firesto
 
 
 def check_order_validity_and_ownership(order_id: str,
-                                       expected_state: OrderStatus,
+                                       expected_state: OrderStatus | None,
                                        current_user: Any,
                                        db_ref: firestore.Client) -> Order:
     order_doc = db_ref.collection(CollectionNames.ORDERS).document(order_id).get()
@@ -59,7 +59,7 @@ def check_order_validity_and_ownership(order_id: str,
             detail=f"No such order with id: {order_id}",
         )
 
-    if order_dict.get('state') == expected_state:
+    if expected_state is not None and order_dict.get('state') == expected_state:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Cannot process order with id: {order_id} - incorrect state: {order_dict.get('state')}, expected state: {expected_state}",
