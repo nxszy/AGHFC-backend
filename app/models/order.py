@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional
 
 from pydantic import BaseModel
 
@@ -17,8 +17,15 @@ class CreateOrderPayload(BaseModel):
     order_items: Dict[str, int]
     restaurant_id: str
 
+class UpdateOrderPayload(BaseModel):
+    id: str
+    order_items: Dict[str, int]
 
-class Order(CreateOrderPayload):
+class PersistedOrder(CreateOrderPayload):
     user_id: str
     total_price: float
     status: OrderStatus = OrderStatus.CHECKOUT
+
+class Order(PersistedOrder):
+    id: Optional[str] = None
+
