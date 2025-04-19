@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Dict, Optional
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, NonNegativeInt
 
 
 class OrderStatus(str, Enum):
@@ -15,7 +15,7 @@ class OrderStatus(str, Enum):
 
 
 class CreateOrderPayload(BaseModel):
-    order_items: Dict[str, int]
+    order_items: Dict[str, NonNegativeInt]
     restaurant_id: str
 
 class UpdateOrderPayload(BaseModel):
@@ -26,6 +26,7 @@ class PersistedOrder(CreateOrderPayload):
     user_id: str
     total_price: float
     status: OrderStatus = OrderStatus.CHECKOUT
+    points_used: NonNegativeInt = 0
     created_at: datetime
     updated_at: datetime
 

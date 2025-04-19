@@ -6,6 +6,7 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 
 from app.models.collection_names import CollectionNames
 from app.models.order import CreateOrderPayload, OrderStatus, Order
+from app.models.user import User
 
 
 def calculate_order_price(order_items: Dict[str, int], db_ref: firestore.Client) -> float:
@@ -47,11 +48,11 @@ def check_restaurant_dishes_existence(order: CreateOrderPayload, db_ref: firesto
 
 def check_order_validity_and_ownership(order_id: str,
                                        expected_state: OrderStatus | None,
-                                       current_user: Any,
+                                       current_user: User,
                                        db_ref: firestore.Client) -> Order:
     order_doc = db_ref.collection(CollectionNames.ORDERS).document(order_id).get()
     order_dict = order_doc.to_dict() if order_doc.exists else None
-    user_id = current_user.get('user_id')
+    user_id = current_user.id
 
     if not order_doc.exists or order_dict.get('user_id') != user_id:
         raise HTTPException(

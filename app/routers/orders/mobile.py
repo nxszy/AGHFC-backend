@@ -6,6 +6,7 @@ from firebase_admin import firestore  # type: ignore
 from app.core.database import get_database_ref
 from app.models.collection_names import CollectionNames
 from app.models.order import CreateOrderPayload, UpdateOrderPayload, OrderStatus, PersistedOrder
+
 from app.services.orders.mobile import create_order, update_order_items, users_order_history
 from app.services.orders.shared import check_restaurant_dishes_existence, check_order_validity_and_ownership
 from app.services.restaurants.shared import check_restaurant_existence
@@ -84,4 +85,3 @@ async def get_single_order(
     order.id = order_id
 
     return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
-
