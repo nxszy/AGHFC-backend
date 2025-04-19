@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from firebase_admin import firestore  # type: ignore
 
 from app.core.database import get_database_ref
 from app.models.collection_names import CollectionNames
 from app.models.order import CreateOrderPayload, UpdateOrderPayload, OrderStatus, PersistedOrder
-from app.services.orders.mobile import create_order, update_order_items
+from app.services.orders.mobile import create_order, update_order_items, users_order_history
 from app.services.orders.shared import check_restaurant_dishes_existence, check_order_validity_and_ownership
 from app.services.restaurants.shared import check_restaurant_existence
 from app.services.shared.request_handler import handle_request_errors
@@ -33,7 +34,7 @@ async def create(
     _, order_doc = db_ref.collection(CollectionNames.ORDERS).add(persisted_data)
     order.id = order_doc.id
 
-    return JSONResponse(content=order.model_dump(), status_code=status.HTTP_201_CREATED)
+    return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
 
 @handle_request_errors
 @router.post("/update")
@@ -51,7 +52,22 @@ async def update(
     persisted_data = PersistedOrder(**order.model_dump()).model_dump()
     db_ref.collection(CollectionNames.ORDERS).document(order_data.id).set(persisted_data)
 
-    return JSONResponse(content=order.model_dump(), status_code=status.HTTP_201_CREATED)
+    return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
+
+@router.get("/history")
+async def get_users_order_history(
+    request: Request,
+    db_ref: firestore.Client = Depends(get_database_ref)
+) -> Response:
+    """Get users order history
+
+    Returns:
+        dict[]: a list of orders made by authenticated user, that are in different state than checkout
+    """
+    orders = users_order_history(request.state.user, db_ref)
+
+    return JSONResponse(content=[jsonable_encoder(order.model_dump()) for order in orders], status_code=status.HTTP_201_CREATED)
+
 
 @router.get("/{order_id}")
 async def get_single_order(
@@ -67,5 +83,5 @@ async def get_single_order(
     order = check_order_validity_and_ownership(order_id, None, request.state.user, db_ref)
     order.id = order_id
 
-    return JSONResponse(content=order.model_dump(), status_code=status.HTTP_201_CREATED)
+    return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
 

@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Dict, Optional
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -25,6 +26,8 @@ class PersistedOrder(CreateOrderPayload):
     user_id: str
     total_price: float
     status: OrderStatus = OrderStatus.CHECKOUT
+    created_at: datetime
+    updated_at: datetime
 
 class Order(PersistedOrder):
     id: Optional[str] = None
