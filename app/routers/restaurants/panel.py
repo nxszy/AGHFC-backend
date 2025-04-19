@@ -8,6 +8,7 @@ from firebase_admin import exceptions, firestore  # type: ignore
 from app.core.database import get_database_ref
 from app.models.restaurant import Restaurant
 from app.models.restaurant_dish import RestaurantDish
+from app.models.collection_names import CollectionNames
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ async def get_restaurant_by_id(restaurant_id: str, db_ref: firestore.Client = De
         Response: FastAPI response with the restaurant data.
     """
     try:
-        restaurant_doc = db_ref.collection("restaurants").document(restaurant_id).get()
+        restaurant_doc = db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).get()
 
         if not restaurant_doc.exists:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Restaurant not found")
@@ -64,7 +65,7 @@ async def add_restaurant(restaurant: Restaurant, db_ref: firestore.Client = Depe
     """
     try:
         restaurant_dict = restaurant.model_dump()
-        db_ref.collection("restaurants").add(restaurant_dict)
+        db_ref.collection(CollectionNames.RESTAURANTS).add(restaurant_dict)
 
         return JSONResponse(content=restaurant_dict, status_code=status.HTTP_201_CREATED)
 
@@ -98,7 +99,7 @@ async def update_restaurant(
     """
     try:
         restaurant_dict = restaurant.model_dump()
-        db_ref.collection("restaurants").document(restaurant_id).set(restaurant_dict)
+        db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).set(restaurant_dict)
 
         return JSONResponse(content=restaurant_dict, status_code=status.HTTP_200_OK)
 
@@ -128,7 +129,7 @@ async def delete_restaurant(restaurant_id: str, db_ref: firestore.Client = Depen
         dict: A confirmation message.
     """
     try:
-        db_ref.collection("restaurants").document(restaurant_id).delete()
+        db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).delete()
 
         return JSONResponse(content={"message": "Restaurant deleted successfully"}, status_code=status.HTTP_200_OK)
 
@@ -161,7 +162,7 @@ async def update_special_offers(
         dict: A confirmation message.
     """
     try:
-        db_ref.collection("restaurants").document(restaurant_id).update({"special_offers": special_offers})
+        db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update({"special_offers": special_offers})
 
         return JSONResponse(content={"message": "Special offers updated successfully"}, status_code=status.HTTP_200_OK)
 
@@ -188,7 +189,7 @@ async def update_menu(
         restaurant_dish_dict = RestaurantDish(
             restaurant_id=restaurant_id, dish_id=dish_id, is_available=False, stock_count=0
         ).model_dump()
-        db_ref.collection("restaurant_dishes").add(restaurant_dish_dict)
+        db_ref.collection(CollectionNames.RESTAURANT_DISHES).add(restaurant_dish_dict)
 
         return JSONResponse(content={"message": "Restaurant menu updated successfully"}, status_code=status.HTTP_200_OK)
 

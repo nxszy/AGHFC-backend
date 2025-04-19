@@ -7,6 +7,7 @@ from firebase_admin import exceptions, firestore  # type: ignore
 
 from app.core.database import get_database_ref
 from app.models.restaurant import Restaurant
+from app.models.collection_names import CollectionNames
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ async def get_all_restaurants(db_ref: firestore.Client = Depends(get_database_re
         dict: A dictionary containing all restaurants.
     """
     try:
-        restaurant_docs = db_ref.collection("restaurants").stream()
+        restaurant_docs = db_ref.collection(CollectionNames.RESTAURANTS).stream()
 
         json_compatible_docs = jsonable_encoder([Restaurant(**doc.to_dict()) for doc in restaurant_docs])
 
