@@ -1,16 +1,13 @@
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from firebase_admin import exceptions, firestore  # type: ignore
+from firebase_admin import firestore  # type: ignore
 
 from app.core.database import get_database_ref
+from app.models.collection_names import CollectionNames
 from app.models.restaurant import Restaurant
 from app.models.restaurant_dish import RestaurantDish
-from app.models.collection_names import CollectionNames
-
-logger = logging.getLogger(__name__)
+from app.services.shared.request_handler import handle_request_errors
 
 router = APIRouter(
     prefix="/restaurant/panel",
@@ -19,6 +16,7 @@ router = APIRouter(
 
 
 @router.get("/get_restaurant_by_id/{restaurant_id}")
+@handle_request_errors
 async def get_restaurant_by_id(restaurant_id: str, db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
     """Get a restaurant by its ID.
 
@@ -28,32 +26,18 @@ async def get_restaurant_by_id(restaurant_id: str, db_ref: firestore.Client = De
     Returns:
         Response: FastAPI response with the restaurant data.
     """
-    try:
-        restaurant_doc = db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).get()
+    restaurant_doc = db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).get()
 
-        if not restaurant_doc.exists:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Restaurant not found")
+    if not restaurant_doc.exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Restaurant not found")
 
-        json_compatible_doc = jsonable_encoder(Restaurant(**restaurant_doc.to_dict()))
+    json_compatible_doc = jsonable_encoder(Restaurant(**restaurant_doc.to_dict()))
 
-        return JSONResponse(content=json_compatible_doc, status_code=status.HTTP_200_OK)
-
-    except exceptions.FirebaseError as e:
-        logger.error(f"Firebase error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to connect to Firestore database"
-        )
-
-    except ValueError as e:
-        logger.error(f"Data conversion error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error processing data from Firestore")
-
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred")
+    return JSONResponse(content=json_compatible_doc, status_code=status.HTTP_200_OK)
 
 
 @router.post("/add_restaurant")
+@handle_request_errors
 async def add_restaurant(restaurant: Restaurant, db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
     """Add a new restaurant to the database.
 
@@ -63,28 +47,14 @@ async def add_restaurant(restaurant: Restaurant, db_ref: firestore.Client = Depe
     Returns:
         Response: FastAPI response with the added restaurant data.
     """
-    try:
-        restaurant_dict = restaurant.model_dump()
-        db_ref.collection(CollectionNames.RESTAURANTS).add(restaurant_dict)
+    restaurant_dict = restaurant.model_dump()
+    db_ref.collection(CollectionNames.RESTAURANTS).add(restaurant_dict)
 
-        return JSONResponse(content=restaurant_dict, status_code=status.HTTP_201_CREATED)
-
-    except exceptions.FirebaseError as e:
-        logger.error(f"Firebase error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to connect to Firestore database"
-        )
-
-    except ValueError as e:
-        logger.error(f"Data conversion error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error processing data from Firestore")
-
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred")
+    return JSONResponse(content=restaurant_dict, status_code=status.HTTP_201_CREATED)
 
 
 @router.put("/update_restaurant/{restaurant_id}")
+@handle_request_errors
 async def update_restaurant(
     restaurant_id: str, restaurant: Restaurant, db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
@@ -97,28 +67,14 @@ async def update_restaurant(
     Returns:
         Response: FastAPI response with the updated restaurant data.
     """
-    try:
-        restaurant_dict = restaurant.model_dump()
-        db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).set(restaurant_dict)
+    restaurant_dict = restaurant.model_dump()
+    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).set(restaurant_dict)
 
-        return JSONResponse(content=restaurant_dict, status_code=status.HTTP_200_OK)
-
-    except exceptions.FirebaseError as e:
-        logger.error(f"Firebase error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to connect to Firestore database"
-        )
-
-    except ValueError as e:
-        logger.error(f"Data conversion error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error processing data from Firestore")
-
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred")
+    return JSONResponse(content=restaurant_dict, status_code=status.HTTP_200_OK)
 
 
 @router.delete("/delete_restaurant/{restaurant_id}")
+@handle_request_errors
 async def delete_restaurant(restaurant_id: str, db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
     """Delete a restaurant from the database.
 
@@ -128,27 +84,13 @@ async def delete_restaurant(restaurant_id: str, db_ref: firestore.Client = Depen
     Returns:
         dict: A confirmation message.
     """
-    try:
-        db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).delete()
+    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).delete()
 
-        return JSONResponse(content={"message": "Restaurant deleted successfully"}, status_code=status.HTTP_200_OK)
-
-    except exceptions.FirebaseError as e:
-        logger.error(f"Firebase error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to connect to Firestore database"
-        )
-
-    except ValueError as e:
-        logger.error(f"Data conversion error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error processing data from Firestore")
-
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred")
+    return JSONResponse(content={"message": "Restaurant deleted successfully"}, status_code=status.HTTP_200_OK)
 
 
 @router.put("/update_special_offers/{restaurant_id}")
+@handle_request_errors
 async def update_special_offers(
     restaurant_id: str, special_offers: list[str], db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
@@ -161,48 +103,19 @@ async def update_special_offers(
     Returns:
         dict: A confirmation message.
     """
-    try:
-        db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update({"special_offers": special_offers})
+    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update({"special_offers": special_offers})
 
-        return JSONResponse(content={"message": "Special offers updated successfully"}, status_code=status.HTTP_200_OK)
-
-    except exceptions.FirebaseError as e:
-        logger.error(f"Firebase error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to connect to Firestore database"
-        )
-
-    except ValueError as e:
-        logger.error(f"Data conversion error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error processing data from Firestore")
-
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred")
+    return JSONResponse(content={"message": "Special offers updated successfully"}, status_code=status.HTTP_200_OK)
 
 
 @router.put("/update_menu/{restaurant_id}")
+@handle_request_errors
 async def update_menu(
     restaurant_id: str, dish_id: str, db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
-    try:
-        restaurant_dish_dict = RestaurantDish(
-            restaurant_id=restaurant_id, dish_id=dish_id, is_available=False, stock_count=0
-        ).model_dump()
-        db_ref.collection(CollectionNames.RESTAURANT_DISHES).add(restaurant_dish_dict)
+    restaurant_dish_dict = RestaurantDish(
+        restaurant_id=restaurant_id, dish_id=dish_id, is_available=False, stock_count=0
+    ).model_dump()
+    db_ref.collection(CollectionNames.RESTAURANT_DISHES).add(restaurant_dish_dict)
 
-        return JSONResponse(content={"message": "Restaurant menu updated successfully"}, status_code=status.HTTP_200_OK)
-
-    except exceptions.FirebaseError as e:
-        logger.error(f"Firebase error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to connect to Firestore database"
-        )
-
-    except ValueError as e:
-        logger.error(f"Data conversion error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Error processing data from Firestore")
-
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred")
+    return JSONResponse(content={"message": "Restaurant menu updated successfully"}, status_code=status.HTTP_200_OK)
