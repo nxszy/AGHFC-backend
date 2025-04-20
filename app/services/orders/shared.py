@@ -5,11 +5,13 @@ from firebase_admin import firestore  # type: ignore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
 from app.models.collection_names import CollectionNames
-from app.models.order import CreateOrderPayload, OrderStatus, Order
+from app.models.order import CreateOrderPayload, OrderStatus, Order, PersistedOrder
+from app.models.special_offer import SpecialOffer
 from app.models.user import User
 
 
-def calculate_order_price(order_items: Dict[str, int], db_ref: firestore.Client) -> float:
+def calculate_order_prices(order:Order, user:User, db_ref: firestore.Client) -> float:
+    order_items = order.order_items
     dish_ids = list(order_items.keys())
     dish_refs = [db_ref.collection(CollectionNames.DISHES).document(dish_id) for dish_id in dish_ids]
 
@@ -49,7 +51,7 @@ def check_restaurant_dishes_existence(order: CreateOrderPayload, db_ref: firesto
 def check_order_validity_and_ownership(order_id: str,
                                        expected_state: OrderStatus | None,
                                        current_user: User,
-                                       db_ref: firestore.Client) -> Order:
+                                       db_ref: firestore.Client) -> PersistedOrder:
     order_doc = db_ref.collection(CollectionNames.ORDERS).document(order_id).get()
     order_dict = order_doc.to_dict() if order_doc.exists else None
     user_id = current_user.id
@@ -66,4 +68,4 @@ def check_order_validity_and_ownership(order_id: str,
             detail=f"Cannot process order with id: {order_id} - incorrect state: {order_dict.get('state')}, expected state: {expected_state}",
         )
 
-    return Order(**order_dict)
+    return PersistedOrder(**order_dict, id=order_id)

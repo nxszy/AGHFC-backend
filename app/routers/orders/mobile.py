@@ -5,7 +5,7 @@ from firebase_admin import firestore  # type: ignore
 
 from app.core.database import get_database_ref
 from app.models.collection_names import CollectionNames
-from app.models.order import CreateOrderPayload, UpdateOrderPayload, OrderStatus, PersistedOrder
+from app.models.order import CreateOrderPayload, UpdateOrderPayload, OrderStatus, PersistedOrder, PayForOrderPayload, Order
 
 from app.services.orders.mobile import create_order, update_order_items, users_order_history
 from app.services.orders.shared import check_restaurant_dishes_existence, check_order_validity_and_ownership
@@ -30,9 +30,11 @@ async def create(
     """
 
 
-    order = create_order(order_data, request.state.user, db_ref)
-    persisted_data = PersistedOrder(**order.model_dump()).model_dump()
-    _, order_doc = db_ref.collection(CollectionNames.ORDERS).add(persisted_data)
+    persisted_order = create_order(order_data, request.state.user, db_ref)
+    persisted_order_dict = persisted_order.model_dump()
+    persisted_order_dict['restaurant_id'] = persisted_order_dict['restaurant_id'].id
+    order = Order(**persisted_order_dict)
+    _, order_doc = db_ref.collection(CollectionNames.ORDERS).add(persisted_order.model_dump())
     order.id = order_doc.id
 
     return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
@@ -49,12 +51,15 @@ async def update(
     Returns:
         dict: A dictionary containing updated order
     """
-    order = update_order_items(order_data, request.state.user, db_ref)
-    persisted_data = PersistedOrder(**order.model_dump()).model_dump()
-    db_ref.collection(CollectionNames.ORDERS).document(order_data.id).set(persisted_data)
+    persisted_order = update_order_items(order_data, request.state.user, db_ref)
+    persisted_order_dict = persisted_order.model_dump()
+    persisted_order_dict['restaurant_id'] = persisted_order_dict['restaurant_id'].id
+    order = Order(**persisted_order_dict, id=order_data.id)
+    db_ref.collection(CollectionNames.ORDERS).document(order_data.id).set(persisted_order.model_dump())
 
     return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
 
+@handle_request_errors
 @router.get("/history")
 async def get_users_order_history(
     request: Request,
@@ -69,7 +74,7 @@ async def get_users_order_history(
 
     return JSONResponse(content=[jsonable_encoder(order.model_dump()) for order in orders], status_code=status.HTTP_201_CREATED)
 
-
+@handle_request_errors
 @router.get("/{order_id}")
 async def get_single_order(
     order_id: str,
@@ -81,7 +86,9 @@ async def get_single_order(
     Returns:
         dict: A dictionary containing order with specified order id
     """
-    order = check_order_validity_and_ownership(order_id, None, request.state.user, db_ref)
-    order.id = order_id
+    persisted_order = check_order_validity_and_ownership(order_id, None, request.state.user, db_ref)
+    persisted_order_dict = persisted_order.model_dump()
+    persisted_order_dict['restaurant_id'] = persisted_order_dict['restaurant_id'].id
+    order = Order(**persisted_order_dict, id=order_id)
 
     return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
