@@ -1,7 +1,10 @@
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional, Annotated
 
-from pydantic import BaseModel
+from datetime import datetime
+
+from pydantic import BaseModel, NonNegativeInt, PositiveInt
+from google.cloud.firestore import DocumentReference
 
 
 class OrderStatus(str, Enum):
@@ -14,11 +17,33 @@ class OrderStatus(str, Enum):
 
 
 class CreateOrderPayload(BaseModel):
-    order_items: Dict[str, int]
+    order_items: Dict[str, PositiveInt]
     restaurant_id: str
 
+class UpdateOrderPayload(BaseModel):
+    id: str
+    order_items: Dict[str, PositiveInt]
 
-class Order(CreateOrderPayload):
+class PayForOrderPayload(BaseModel):
+    id: str
+    points: NonNegativeInt = 0
+
+class PersistedOrder(BaseModel):
     user_id: str
+    order_items: Dict[str, PositiveInt]
     total_price: float
+    total_price_including_special_offers: float
     status: OrderStatus = OrderStatus.CHECKOUT
+    points_used: NonNegativeInt = 0
+    created_at: datetime
+    updated_at: datetime
+    restaurant_id: Annotated[DocumentReference, ...]
+
+    model_config = {
+        "arbitrary_types_allowed": True
+    }
+
+class Order(PersistedOrder):
+    id: Optional[str] = None
+    restaurant_id: str
+

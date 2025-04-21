@@ -7,3 +7,4 @@ class CollectionNames(str, Enum):
     RESTAURANTS = "restaurants"
     RESTAURANT_DISHES = "restaurant_dishes"
     SPECIAL_OFFERS = "special_offers"
+    USERS = "users"
