@@ -1,3 +1,5 @@
+from functools import reduce
+
 from typing import Any, Dict
 
 from fastapi import HTTPException, status
@@ -17,8 +19,29 @@ def calculate_order_prices(order:Order, user:User, db_ref: firestore.Client) -> 
 
     dishes_docs = db_ref.get_all(dish_refs)
 
-    order_total = float(sum([order_items[dish.id] * dish.to_dict().get("base_price") for dish in dishes_docs]))
-    return order_total
+    order_total = 0.0
+    dish_prices_including_special_offers = {}
+
+    for dish in dishes_docs:
+        order_total += float(order_items[dish.id] * dish.to_dict().get("base_price"))
+        dish_prices_including_special_offers[dish.id] = dish.to_dict().get("base_price")
+
+    restaurant_doc = order.restaurant_id.get().to_dict()
+
+    user_special_offers = [SpecialOffer(**doc.to_dict()) for doc in db_ref.get_all(user.special_offers)]
+    restaurant_special_offers = [SpecialOffer(**doc.to_dict()) for doc in db_ref.get_all(restaurant_doc.get('special_offers'))]
+
+    for special_offer in user_special_offers + restaurant_special_offers:
+        dish_id = special_offer.dish_id.id
+        current_best_price = dish_prices_including_special_offers.get(dish_id, float('inf'))
+
+        if current_best_price > special_offer.special_price:
+            dish_prices_including_special_offers[dish_id] = special_offer.special_price
+
+    sum_order_total_special_offers = lambda acc, id: acc + dish_prices_including_special_offers[id] * order_items[id]
+    total_including_discounts = reduce(sum_order_total_special_offers, dish_ids, 0.0)
+    return order_total, total_including_discounts
+
 
 
 def check_restaurant_dishes_existence(order: CreateOrderPayload, db_ref: firestore.Client) -> None:
