@@ -9,7 +9,8 @@ from app.models.order import CreateOrderPayload, Order, OrderStatus, UpdateOrder
 from app.models.user import User
 from app.models.collection_names import CollectionNames
 
-from .shared import calculate_order_prices, check_restaurant_dishes_existence, check_order_validity_and_ownership
+from .shared import calculate_order_prices, check_restaurant_dishes_existence, check_order_validity_and_ownership, \
+    get_order_by_id, finalize_order_stock
 from app.services.restaurants.shared import check_restaurant_existence
 
 
@@ -69,3 +70,17 @@ def users_order_history(user: User, db_ref: firestore.Client):
 
 def transition_order_to_payment(order_data: PayForOrderPayload, user: User, db_ref: firestore.Client):
     order = check_order_validity_and_ownership(order_data.id, OrderStatus.CHECKOUT, user, db_ref)
+
+    if len(order.order_items) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Cannot pay for empty order with id: {order_id}.",
+        )
+    order.total_price, order.total_price_including_special_offers = calculate_order_prices(order, user, db_ref)
+    finalize_order_stock(order, order_data.id, db_ref)
+    order.status = OrderStatus.PAID
+    order.updated_at = datetime.utcnow()
+
+    return order
+
+

@@ -5,9 +5,11 @@ from typing import Any, Dict
 from fastapi import HTTPException, status
 from firebase_admin import firestore  # type: ignore
 from google.cloud.firestore_v1.base_query import FieldFilter
+from google.cloud.firestore import Transaction
 
 from app.models.collection_names import CollectionNames
 from app.models.order import CreateOrderPayload, OrderStatus, Order, PersistedOrder
+from app.models.restaurant_dish import RestaurantDish
 from app.models.special_offer import SpecialOffer
 from app.models.user import User
 
@@ -91,4 +93,48 @@ def check_order_validity_and_ownership(order_id: str,
             detail=f"Cannot process order with id: {order_id} - incorrect state: {order_dict.get('state')}, expected state: {expected_state}",
         )
 
-    return PersistedOrder(**order_dict, id=order_id)
+    return PersistedOrder(**order_dict)
+
+def get_order_by_id(order_id: str, db_ref) -> PersistedOrder:
+    result = PersistedOrder(**db_ref.collection(CollectionNames.ORDERS).document(order_id).get().to_dict())
+    return result
+
+from google.cloud.firestore import Transaction
+
+def finalize_order_stock(order: PersistedOrder, order_id: str, db_ref) -> bool:
+    @firestore.transactional
+    def transaction_logic(transaction: Transaction):
+        restaurant_ref = order.restaurant_id
+        dish_ids = list(order.order_items.keys())
+        dish_refs = [db_ref.collection(CollectionNames.DISHES).document(dish_id) for dish_id in dish_ids]
+
+        restaurant_dishes_query = (
+            db_ref.collection(CollectionNames.RESTAURANT_DISHES)
+            .where(filter=FieldFilter("dish_id", "in", dish_refs))
+            .where(filter=FieldFilter("restaurant_id", "==", restaurant_ref))
+        )
+
+        restaurant_dishes_docs = list(transaction.get(restaurant_dishes_query))
+
+        restaurant_dishes = {
+            doc.id: RestaurantDish(**doc.to_dict()) for doc in restaurant_dishes_docs
+        }
+        updated_state = {}
+
+        for restaurant_dish_id, restaurant_dish in restaurant_dishes.items():
+            dish_id = restaurant_dish.dish_id.id
+            new_stock_state = restaurant_dish.stock_count - order.order_items[dish_id]
+            if new_stock_state < 0:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail=f"Cannot process order with id: {order_id} - restaurant dish with id: {dish_id} exceeds current restaurant stock",
+                )
+            updated_state[restaurant_dish_id] = new_stock_state
+
+        for restaurant_dish_id, stock in updated_state.items():
+            doc_ref = db_ref.collection(CollectionNames.RESTAURANT_DISHES).document(restaurant_dish_id)
+            transaction.update(doc_ref, {"stock_count": stock})
+
+    transaction = db_ref.transaction()
+    transaction_logic(transaction)
+    return True

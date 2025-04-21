@@ -3,7 +3,7 @@ from typing import Dict, Optional, Annotated
 
 from datetime import datetime
 
-from pydantic import BaseModel, NonNegativeInt
+from pydantic import BaseModel, NonNegativeInt, PositiveInt
 from google.cloud.firestore import DocumentReference
 
 
@@ -17,12 +17,12 @@ class OrderStatus(str, Enum):
 
 
 class CreateOrderPayload(BaseModel):
-    order_items: Dict[str, NonNegativeInt]
+    order_items: Dict[str, PositiveInt]
     restaurant_id: str
 
 class UpdateOrderPayload(BaseModel):
     id: str
-    order_items: Dict[str, int]
+    order_items: Dict[str, PositiveInt]
 
 class PayForOrderPayload(BaseModel):
     id: str
@@ -30,7 +30,7 @@ class PayForOrderPayload(BaseModel):
 
 class PersistedOrder(BaseModel):
     user_id: str
-    order_items: Dict[str, NonNegativeInt]
+    order_items: Dict[str, PositiveInt]
     total_price: float
     total_price_including_special_offers: float
     status: OrderStatus = OrderStatus.CHECKOUT

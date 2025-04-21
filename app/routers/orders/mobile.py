@@ -7,7 +7,7 @@ from app.core.database import get_database_ref
 from app.models.collection_names import CollectionNames
 from app.models.order import CreateOrderPayload, UpdateOrderPayload, OrderStatus, PersistedOrder, PayForOrderPayload, Order
 
-from app.services.orders.mobile import create_order, update_order_items, users_order_history
+from app.services.orders.mobile import create_order, update_order_items, users_order_history, transition_order_to_payment
 from app.services.orders.shared import check_restaurant_dishes_existence, check_order_validity_and_ownership
 from app.services.restaurants.shared import check_restaurant_existence
 from app.services.shared.request_handler import handle_request_errors
@@ -92,3 +92,20 @@ async def get_single_order(
     order = Order(**persisted_order_dict, id=order_id)
 
     return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
+
+@handle_request_errors
+@router.post("/pay")
+async def pay_for_order(
+    order_data: PayForOrderPayload,
+    request: Request,
+    db_ref: firestore.Client = Depends(get_database_ref)
+) -> Response:
+    persisted_order = transition_order_to_payment(order_data, request.state.user, db_ref)
+    persisted_order_dict = persisted_order.model_dump()
+    persisted_order_dict['restaurant_id'] = persisted_order_dict['restaurant_id'].id
+    order = Order(**persisted_order_dict, id=order_data.id)
+    db_ref.collection(CollectionNames.ORDERS).document(order_data.id).set(persisted_order.model_dump())
+
+    return JSONResponse(content=jsonable_encoder(order.model_dump()), status_code=status.HTTP_201_CREATED)
+
+
