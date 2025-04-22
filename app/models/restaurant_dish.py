@@ -1,6 +1,7 @@
-from pydantic import BaseModel
 from typing import Annotated
-from google.cloud.firestore import DocumentReference
+
+from google.cloud.firestore import DocumentReference  # type: ignore
+from pydantic import BaseModel
 
 
 class RestaurantDish(BaseModel):
@@ -9,6 +10,4 @@ class RestaurantDish(BaseModel):
     is_available: bool
     stock_count: int
 
-    model_config = {
-        "arbitrary_types_allowed": True
-    }
+    model_config = {"arbitrary_types_allowed": True}
