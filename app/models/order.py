@@ -1,10 +1,15 @@
 from enum import Enum
 from typing import Dict, Optional, Annotated
+from pydantic import BaseModel, NonNegativeInt, PositiveInt
 
 from datetime import datetime
 
-from pydantic import BaseModel, NonNegativeInt, PositiveInt
 from google.cloud.firestore import DocumentReference
+from firebase_admin import firestore  # type: ignore
+
+from app.models.collection_names import CollectionNames
+from app.models.user import User
+
 
 
 class OrderStatus(str, Enum):
@@ -42,6 +47,18 @@ class PersistedOrder(BaseModel):
     model_config = {
         "arbitrary_types_allowed": True
     }
+
+    def finalize_users_loyalty_points(self,
+                                      user: User,
+                                      loyalty_points: int,
+                                      db_ref: firestore.Client) -> None:
+        if loyalty_points == 0:
+            return
+        self.points_used = min(loyalty_points, user.points, int(self.total_price_including_special_offers))
+        user.points -= self.points_used
+
+        db_ref.collection(CollectionNames.USERS).document(user.id).update({'points': user.points})
+
 
 class Order(PersistedOrder):
     id: Optional[str] = None

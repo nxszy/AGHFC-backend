@@ -78,6 +78,7 @@ def transition_order_to_payment(order_data: PayForOrderPayload, user: User, db_r
         )
     order.total_price, order.total_price_including_special_offers = calculate_order_prices(order, user, db_ref)
     finalize_order_stock(order, order_data.id, db_ref)
+    order.finalize_users_loyalty_points(user, order_data.points, db_ref)
     order.status = OrderStatus.PAID
     order.updated_at = datetime.utcnow()
 
