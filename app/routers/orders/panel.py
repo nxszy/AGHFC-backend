@@ -9,6 +9,7 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 from app.core.database import get_database_ref
 from app.models.collection_names import CollectionNames
 from app.models.order import PanelOrdersPayload, PersistedOrder, Order
+from app.models.user import UserRole
 from app.services.shared.request_handler import handle_request_errors
 from app.services.shared.user_role_handler import role_required
 
@@ -21,7 +22,7 @@ router = APIRouter(
 @handle_request_errors
 @router.get("/all")
 async def all_orders(filters: PanelOrdersPayload,
-                     dep: Any = Depends(role_required("admin")),
+                     dep: Any = Depends(role_required(UserRole.ADMIN)),
                      db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
     order_docs = db_ref.collection(CollectionNames.ORDERS)
 
@@ -46,7 +47,7 @@ async def all_orders(filters: PanelOrdersPayload,
 @router.get("/single/{order_id}")
 async def single_order(
         order_id: str,
-        dep: Any = Depends(role_required("admin")),
+        dep: Any = Depends(role_required(UserRole.ADMIN)),
         db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
 
     doc = db_ref.collection(CollectionNames.ORDERS).document(order_id).get()

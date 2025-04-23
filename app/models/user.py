@@ -14,7 +14,7 @@ class UserRole(str, Enum):
 class PersistedUser(BaseModel):
     email: str
     role: UserRole
-    restaurant_id: Optional[str] = None
+    restaurant_id: Optional[Annotated[DocumentReference, ...]] = None
     points: int = 0
     special_offers: list[Annotated[DocumentReference, ...]] = []
 

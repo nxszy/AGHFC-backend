@@ -37,6 +37,10 @@ class PanelOrdersPayload(BaseModel):
     restaurant_id: Optional[str] = None
     status: Optional[OrderStatus] = None
 
+class TransitionOrderStatusPayload(BaseModel):
+    id: str
+    status: OrderStatus
+
 
 class PersistedOrder(BaseModel):
     user_id: str
