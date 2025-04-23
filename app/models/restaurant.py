@@ -1,10 +1,13 @@
-from typing import Annotated
+
+from typing import Any, , Annotated
+
+from pydantic import BaseModel, Field
 
 from google.cloud.firestore import DocumentReference  # type: ignore
-from pydantic import BaseModel
 
 
 class Restaurant(BaseModel):
+    id: Optional[str] = Field(default=None, description="Firestore document ID")
     name: str
     city: str
     address: str

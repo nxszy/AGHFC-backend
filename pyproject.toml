@@ -22,6 +22,8 @@ flake8 = "^7.2.0"
 ruff = "^0.11.4"
 isort = "^6.0.1"
 types-requests = "^2.32.0.20250328"
+pytest = "^8.3.5"
+pytest-cov = "^6.1.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -41,6 +43,7 @@ check_untyped_defs = true
 warn_return_any = true
 warn_unused_ignores = true
 show_error_codes = true
+exclude = 'app/tests/'
 
 plugins = [
     "pydantic.mypy"

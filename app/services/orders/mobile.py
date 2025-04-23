@@ -16,6 +16,7 @@ from .shared import (calculate_order_prices,
                      check_restaurant_dishes_existence, finalize_order_stock)
 
 
+
 def create_order(order_data: CreateOrderPayload, user: User, db_ref: firestore.Client) -> PersistedOrder:
     restaurant_reference = check_restaurant_existence(order_data.restaurant_id, db_ref)
     check_restaurant_dishes_existence(order_data, db_ref)

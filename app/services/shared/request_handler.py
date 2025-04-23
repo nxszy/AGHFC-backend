@@ -14,6 +14,9 @@ def handle_request_errors(func: Callable) -> Callable:
         try:
             return await func(*args, **kwargs)
 
+        except HTTPException as e:
+            raise e
+
         except exceptions.FirebaseError as e:
             logger.error(f"Firebase error: {e}")
             raise HTTPException(

@@ -1,4 +1,4 @@
-.PHONY: format black isort lint fix type-check all
+.PHONY: format black isort lint fix type-check test all
 
 black:
 	poetry run black .
@@ -18,4 +18,7 @@ fix:
 type-check:
 	poetry run mypy app
 
-all: format lint type-check
+test:
+	PYTHONPATH=. poetry run pytest --cov=app --cov-report=term-missing
+
+all: format lint type-check test
