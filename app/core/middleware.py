@@ -4,11 +4,10 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.models.collection_names import CollectionNames
-from app.models.user import User, PersistedUser, UserRole
-
 from app.core.database import get_database_ref
 from app.core.firebase_auth import verify_firebase_token
+from app.models.collection_names import CollectionNames
+from app.models.user import PersistedUser, User, UserRole
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -32,10 +31,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         return response
 
-
-    def persist_user_to_database(self, user:Any) -> User:
+    def persist_user_to_database(self, user: Any) -> User:
         db_ref = get_database_ref()
-        user_id = user.get('user_id')
+        user_id = user.get("user_id")
         user_doc = db_ref.collection(CollectionNames.USERS).document(user_id).get()
 
         if not user_doc.exists:
