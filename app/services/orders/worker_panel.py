@@ -1,22 +1,20 @@
-from google.cloud.firestore import DocumentReference  # type: ignore
-from firebase_admin import firestore  # type: ignore
+from datetime import datetime
 
 from fastapi import HTTPException, status
+from firebase_admin import firestore  # type: ignore
+from google.cloud.firestore import DocumentReference  # type: ignore
 
 from app.models.order import OrderStatus, PersistedOrder
 from app.services.orders.shared import check_order_validity_and_ownership
 
-from datetime import datetime
 
-
-def transition_order_status(order_id: str,
-                            restaurant_ref: DocumentReference,
-                            order_status: OrderStatus,
-                            db_ref: firestore.Client) -> PersistedOrder:
+def transition_order_status(
+    order_id: str, restaurant_ref: DocumentReference, order_status: OrderStatus, db_ref: firestore.Client
+) -> PersistedOrder:
     expected_status_for_transitions = {
         OrderStatus.IN_PROGRESS.value: OrderStatus.PAID,
         OrderStatus.READY.value: OrderStatus.IN_PROGRESS,
-        OrderStatus.COMPLETED.value: OrderStatus.READY
+        OrderStatus.COMPLETED.value: OrderStatus.READY,
     }
 
     if order_status not in expected_status_for_transitions.keys():
@@ -37,4 +35,3 @@ def transition_order_status(order_id: str,
     order.updated_at = datetime.utcnow()
 
     return order
-

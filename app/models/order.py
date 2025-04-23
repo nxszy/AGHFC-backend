@@ -33,9 +33,11 @@ class PayForOrderPayload(BaseModel):
     id: str
     points: NonNegativeInt = 0
 
+
 class PanelOrdersPayload(BaseModel):
     restaurant_id: Optional[str] = None
     status: Optional[OrderStatus] = None
+
 
 class TransitionOrderStatusPayload(BaseModel):
     id: str
