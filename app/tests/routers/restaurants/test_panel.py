@@ -1,11 +1,8 @@
 from unittest.mock import MagicMock
 
-import pydantic
 from fastapi import status
 from google.auth.credentials import AnonymousCredentials  # type: ignore
 from google.cloud import firestore  # type: ignore
-
-from app.models.restaurant import Restaurant
 
 BASE_URL = "/restaurant/panel"
 

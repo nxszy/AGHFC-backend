@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import HTTPException, status
 from firebase_admin import firestore  # type: ignore
@@ -32,6 +32,6 @@ def transition_order_status(
         )
 
     order.status = order_status
-    order.updated_at = datetime.utcnow()
+    order.updated_at = datetime.now(UTC)
 
     return order
