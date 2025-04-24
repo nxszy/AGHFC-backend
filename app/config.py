@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class FirebaseConfig(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="firebase_")
+    model_config = SettingsConfigDict(env_prefix="firebase_", env_file=".env", extra="allow")
     service_account_json: dict
     database_url: str
     project_id: str
