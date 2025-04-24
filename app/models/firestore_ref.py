@@ -1,7 +1,10 @@
+from typing import Any
+from unittest.mock import MagicMock
+
 from google.cloud.firestore_v1 import DocumentReference
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import core_schema
-from typing import Any
+
 
 class FirestoreRef:
     def __init__(self, ref: DocumentReference):
@@ -11,10 +14,10 @@ class FirestoreRef:
         # Delegate everything else to the actual DocumentReference
         return getattr(self.ref, name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"FirestoreRef({repr(self.ref)})"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> Any:
         if isinstance(other, FirestoreRef):
             return self.ref == other.ref
         if isinstance(other, DocumentReference):
@@ -30,5 +33,7 @@ class FirestoreRef:
         if isinstance(v, DocumentReference):
             return cls(v)
         if isinstance(v, cls):
+            return v
+        if isinstance(v, MagicMock):
             return v
         raise TypeError(f"Expected DocumentReference or FirestoreRef, got {type(v)}")

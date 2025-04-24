@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import HTTPException, status
 from firebase_admin import firestore  # type: ignore
@@ -19,7 +19,7 @@ from .shared import (calculate_order_prices,
 def create_order(order_data: CreateOrderPayload, user: User, db_ref: firestore.Client) -> PersistedOrder:
     restaurant_reference = check_restaurant_existence(order_data.restaurant_id, db_ref)
     check_restaurant_dishes_existence(order_data, db_ref)
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
 
     result_order = PersistedOrder(
         user_id=user.id,
@@ -46,7 +46,7 @@ def update_order_items(order_data: UpdateOrderPayload, user: User, db_ref: fires
 
     order.order_items = order_data.order_items
     order.total_price, order.total_price_including_special_offers = calculate_order_prices(order, user, db_ref)
-    order.updated_at = datetime.utcnow()
+    order.updated_at = datetime.now(UTC)
     return order
 
 
@@ -76,6 +76,6 @@ def transition_order_to_payment(order_data: PayForOrderPayload, user: User, db_r
     finalize_order_stock(order, order_data.id, db_ref)
     order.finalize_users_loyalty_points(user, order_data.points, db_ref)
     order.status = OrderStatus.PAID
-    order.updated_at = datetime.utcnow()
+    order.updated_at = datetime.now(UTC)
 
     return order
