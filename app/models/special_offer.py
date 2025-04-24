@@ -1,11 +1,10 @@
 from typing import Annotated
 
-from google.cloud.firestore import DocumentReference  # type: ignore
 from pydantic import BaseModel
+
+from app.models.firestore_ref import FirestoreRef
 
 
 class SpecialOffer(BaseModel):
-    dish_id: Annotated[DocumentReference, ...]
+    dish_id: Annotated[FirestoreRef, ...]
     special_price: float
-
-    model_config = {"arbitrary_types_allowed": True}

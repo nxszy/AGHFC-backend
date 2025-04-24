@@ -5,7 +5,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.core.database import get_database_ref
+from app.core.middleware import AuthMiddleware
 from app.main import app
+from app.models.user import User, UserRole
 
 
 @pytest.fixture
@@ -40,8 +42,11 @@ def mock_db_ref() -> MagicMock:
 
 @pytest.fixture
 def mock_authorized_client(mock_db_ref) -> Any:
+    mocked_user = User(id="test_user_id", email="test@example.com", role=UserRole.CUSTOMER)
 
-    with patch("app.core.middleware.verify_firebase_token") as mock_verify:
+    with patch("app.core.middleware.verify_firebase_token") as mock_verify, patch.object(
+        AuthMiddleware, "persist_user_to_database", return_value=mocked_user
+    ):
         mock_verify.return_value = {"uid": "test_user_id", "email": "test@example.com", "name": "Test User"}
 
         app.dependency_overrides[get_database_ref] = lambda: mock_db_ref

@@ -1,8 +1,9 @@
 from enum import Enum
 from typing import Annotated, Optional
 
-from google.cloud.firestore import DocumentReference  # type: ignore
 from pydantic import BaseModel
+
+from app.models.firestore_ref import FirestoreRef
 
 
 class UserRole(str, Enum):
@@ -14,11 +15,9 @@ class UserRole(str, Enum):
 class PersistedUser(BaseModel):
     email: str
     role: UserRole
-    restaurant_id: Optional[Annotated[DocumentReference, ...]] = None
+    restaurant_id: Optional[Annotated[FirestoreRef, ...]] = None
     points: int = 0
-    special_offers: list[Annotated[DocumentReference, ...]] = []
-
-    model_config = {"arbitrary_types_allowed": True}
+    special_offers: list[Annotated[FirestoreRef, ...]] = []
 
 
 class User(PersistedUser):

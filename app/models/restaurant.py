@@ -1,9 +1,8 @@
-
-from typing import Any, Annotated, Optional
+from typing import Annotated, Optional
 
 from pydantic import BaseModel, Field
 
-from google.cloud.firestore import DocumentReference  # type: ignore
+from app.models.firestore_ref import FirestoreRef
 
 
 class Restaurant(BaseModel):
@@ -12,6 +11,4 @@ class Restaurant(BaseModel):
     city: str
     address: str
     opening_hours: str
-    special_offers: list[Annotated[DocumentReference, ...]] = []
-
-    model_config = {"arbitrary_types_allowed": True}
+    special_offers: list[Annotated[FirestoreRef, ...]] = []

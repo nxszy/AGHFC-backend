@@ -45,7 +45,7 @@ async def get_available_dishes(
     result = []
     for rd_doc in rd_stream:
         rd = rd_doc.to_dict()
-        dish_ref = rd["dish_id"] 
+        dish_ref = rd["dish_id"]
         dish_doc = dish_ref.get()
         if not dish_doc.exists:
             continue

@@ -3,10 +3,10 @@ from enum import Enum
 from typing import Annotated, Dict, Optional
 
 from firebase_admin import firestore  # type: ignore
-from google.cloud.firestore import DocumentReference  # type: ignore
 from pydantic import BaseModel, NonNegativeInt, PositiveInt
 
 from app.models.collection_names import CollectionNames
+from app.models.firestore_ref import FirestoreRef
 from app.models.user import User
 
 
@@ -53,9 +53,7 @@ class PersistedOrder(BaseModel):
     points_used: NonNegativeInt = 0
     created_at: datetime
     updated_at: datetime
-    restaurant_id: Annotated[DocumentReference, ...]
-
-    model_config = {"arbitrary_types_allowed": True}
+    restaurant_id: Annotated[FirestoreRef, ...]
 
     def finalize_users_loyalty_points(self, user: User, loyalty_points: int, db_ref: firestore.Client) -> None:
         if loyalty_points == 0:
@@ -66,6 +64,14 @@ class PersistedOrder(BaseModel):
         db_ref.collection(CollectionNames.USERS).document(user.id).update({"points": user.points})
 
 
-class Order(PersistedOrder):
+class Order(BaseModel):
     id: Optional[str] = None
+    user_id: str
+    order_items: Dict[str, PositiveInt]
+    total_price: float
+    total_price_including_special_offers: float
+    status: OrderStatus = OrderStatus.CHECKOUT
+    points_used: NonNegativeInt = 0
+    created_at: datetime
+    updated_at: datetime
     restaurant_id: str
