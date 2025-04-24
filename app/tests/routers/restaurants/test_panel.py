@@ -1,6 +1,11 @@
 from unittest.mock import MagicMock
 
+import pydantic
 from fastapi import status
+from google.auth.credentials import AnonymousCredentials  # type: ignore
+from google.cloud import firestore  # type: ignore
+
+from app.models.restaurant import Restaurant
 
 BASE_URL = "/restaurant/panel"
 
@@ -106,9 +111,17 @@ def test_update_special_offers(
     assert response.json()["message"] == "Special offers updated successfully"
 
 
-def test_update_menu(
-    mock_authorized_client,
-):
+def test_update_menu(mock_authorized_client, mock_db_ref):
+
+    def create_fake_doc_ref(collection="restaurants", doc_id="test_id"):
+        client = firestore.Client(project="test-project", credentials=AnonymousCredentials())
+        return client.collection(collection).document(doc_id)
+
+    mock_doc_ref = create_fake_doc_ref("test", "test")
+
+    mock_db_ref.collection.return_value.document.return_value = mock_doc_ref
+    mock_db_ref.collection.return_value.add.return_value = True
+
     response = mock_authorized_client.put(
         f"{BASE_URL}/update_menu/res123?dish_id=dish456",
         headers={"Authorization": "Bearer valid-token"},

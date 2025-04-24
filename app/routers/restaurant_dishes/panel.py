@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from firebase_admin import firestore  # type: ignore
 from pydantic import BaseModel
@@ -16,6 +15,7 @@ router = APIRouter(
 
 class RestaurantDishStateUpdate(BaseModel):
     """New availability flag and stock count for a dish in a restaurant."""
+
     is_available: bool
     stock_count: int
 
@@ -42,27 +42,14 @@ async def update_restaurant_dish_state(
     dish_ref = db_ref.collection(CollectionNames.DISHES).document(dish_id)
 
     coll = db_ref.collection(CollectionNames.RESTAURANT_DISHES)
-    query = (
-        coll
-        .where("restaurant_id", "==", restaurant_ref)
-        .where("dish_id", "==", dish_ref)
-        .limit(1)
-        .get()
-    )
+    query = coll.where("restaurant_id", "==", restaurant_ref).where("dish_id", "==", dish_ref).limit(1).get()
 
     if not query:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dish not assigned to this restaurant"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dish not assigned to this restaurant")
 
     entry_ref = query[0].reference
-    entry_ref.update({
-        "is_available": state.is_available,
-        "stock_count": state.stock_count
-    })
+    entry_ref.update({"is_available": state.is_available, "stock_count": state.stock_count})
 
     return JSONResponse(
-        content={"message": "Restaurant–dish state updated successfully"},
-        status_code=status.HTTP_200_OK
+        content={"message": "Restaurant–dish state updated successfully"}, status_code=status.HTTP_200_OK
     )

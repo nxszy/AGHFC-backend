@@ -113,8 +113,10 @@ async def update_special_offers(
 async def update_menu(
     restaurant_id: str, dish_id: str, db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
+    restaurant_ref = db_ref.collection(CollectionNames.RESTAURANT_DISHES).document(restaurant_id)
+    dish_ref = db_ref.collection(CollectionNames.RESTAURANT_DISHES).document(dish_id)
     restaurant_dish_dict = RestaurantDish(
-        restaurant_id=restaurant_id, dish_id=dish_id, is_available=False, stock_count=0
+        restaurant_id=restaurant_ref, dish_id=dish_ref, is_available=False, stock_count=0
     ).model_dump()
     db_ref.collection(CollectionNames.RESTAURANT_DISHES).add(restaurant_dish_dict)
 
