@@ -2,6 +2,7 @@ from fastapi import HTTPException, status
 from firebase_admin import firestore  # type: ignore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
+from app.core.firebase_auth import create_firebase_user, delete_firebase_user
 from app.models.collection_names import CollectionNames
 from app.models.user import PersistedUser, UserRole
 from app.services.restaurants.shared import check_restaurant_existence
@@ -66,21 +67,22 @@ def get_worker_by_id(worker_id: str, db_ref: firestore.Client) -> dict:
     }
 
 
-def create_worker(email: str, db_ref: firestore.Client) -> dict:
-    user_docs = db_ref.collection(CollectionNames.USERS).where(filter=FieldFilter("email", "==", email)).limit(1).get()
-
-    if user_docs:
+def create_worker(email: str, db_ref: firestore.Client, password: str) -> dict:
+    if db_ref.collection(CollectionNames.USERS).where(filter=FieldFilter("email", "==", email)).limit(1).get():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"User with email {email} already exists")
 
-    worker = PersistedUser(email=email, role=UserRole.WORKER)
-    doc_ref = db_ref.collection(CollectionNames.USERS).document()
-    doc_ref.set(worker.model_dump())
+    firebase_uid, temp_password = create_firebase_user(email, password)
+
+    db_ref.collection(CollectionNames.USERS).document(firebase_uid).set(
+        PersistedUser(email=email, role=UserRole.WORKER).model_dump()
+    )
 
     return {
-        "id": doc_ref.id,
+        "id": firebase_uid,
         "email": email,
         "restaurant_id": None,
         "restaurant_name": None,
+        "password": password,
     }
 
 
@@ -147,6 +149,8 @@ def delete_worker(worker_id: str, db_ref: firestore.Client) -> dict:
 
     if worker_data.get("role") != UserRole.WORKER:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"User with id {worker_id} is not a worker")
+
+    delete_firebase_user(worker_id)
 
     db_ref.collection(CollectionNames.USERS).document(worker_id).delete()
 

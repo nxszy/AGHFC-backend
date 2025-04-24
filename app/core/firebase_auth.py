@@ -5,7 +5,7 @@ import firebase_admin  # type: ignore
 import jwt
 import requests
 from fastapi import HTTPException
-from firebase_admin import credentials
+from firebase_admin import auth, credentials
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 
@@ -31,11 +31,7 @@ def get_firebase_public_keys() -> Any:
 
 def verify_firebase_token(token: str) -> Any:
     try:
-        public_keys = get_firebase_public_keys()
-        header = jwt.get_unverified_header(token)
-        key_id = header.get("kid")
-
-        if key_id not in public_keys:
+        if jwt.get_unverified_header(token).get("kid") not in get_firebase_public_keys():
             raise HTTPException(status_code=401, detail="Incorrect token.")
 
         decoded_token = id_token.verify_firebase_token(
@@ -48,3 +44,24 @@ def verify_firebase_token(token: str) -> Any:
         return decoded_token
     except Exception as e:
         raise HTTPException(status_code=401, detail=f"Unable to authenticate: {str(e)}.")
+
+
+def create_firebase_user(email: str, password: str) -> tuple[str, str]:
+    try:
+        user = auth.create_user(email=email, email_verified=False, password=password, disabled=False)
+        return user.uid, password
+    except auth.EmailAlreadyExistsError:
+        raise HTTPException(
+            status_code=400, detail=f"User with email {email} already exists in Firebase Authentication."
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create Firebase user: {str(e)}")
+
+
+def delete_firebase_user(uid: str) -> None:
+    try:
+        auth.delete_user(uid)
+    except auth.UserNotFoundError:
+        raise HTTPException(status_code=404, detail=f"User with UID {uid} not found in Firebase Authentication.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete Firebase user: {str(e)}")

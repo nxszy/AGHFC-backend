@@ -20,6 +20,7 @@ from app.services.workers.panel import (
 
 class CreateWorkerRequest(BaseModel):
     email: EmailStr
+    password: str
 
 
 router = APIRouter(
@@ -47,7 +48,7 @@ async def add_worker(
     worker_data: CreateWorkerRequest, db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
     return JSONResponse(
-        content=jsonable_encoder(create_worker(worker_data.email, db_ref)),
+        content=jsonable_encoder(create_worker(worker_data.email, db_ref, worker_data.password)),
         status_code=status.HTTP_201_CREATED,
     )
 
