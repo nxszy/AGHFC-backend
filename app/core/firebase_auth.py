@@ -46,10 +46,10 @@ def verify_firebase_token(token: str) -> Any:
         raise HTTPException(status_code=401, detail=f"Unable to authenticate: {str(e)}.")
 
 
-def create_firebase_user(email: str, password: str) -> tuple[str, str]:
+def create_firebase_user(email: str, password: str) -> str:
     try:
         user = auth.create_user(email=email, email_verified=False, password=password, disabled=False)
-        return user.uid, password
+        return user.uid
     except auth.EmailAlreadyExistsError:
         raise HTTPException(
             status_code=400, detail=f"User with email {email} already exists in Firebase Authentication."
@@ -65,3 +65,12 @@ def delete_firebase_user(uid: str) -> None:
         raise HTTPException(status_code=404, detail=f"User with UID {uid} not found in Firebase Authentication.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete Firebase user: {str(e)}")
+
+
+def change_user_password(uid: str, new_password: str) -> None:
+    try:
+        auth.update_user(uid, password=new_password)
+    except auth.UserNotFoundError:
+        raise HTTPException(status_code=404, detail=f"User with UID {uid} not found in Firebase Authentication.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to change user password: {str(e)}")

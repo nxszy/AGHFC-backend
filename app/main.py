@@ -10,6 +10,7 @@ from app.routers.restaurants import panel as panel_mobile
 from app.routers.special_offers import mobile as special_offers_mobile
 from app.routers.special_offers import panel as special_offers_panel
 from app.routers.workers import panel as workers_panel
+from app.routers.workers import worker_panel as worker_panel
 
 security_scheme = HTTPBearer()
 
@@ -28,3 +29,4 @@ app.include_router(orders_worker_panel.router)
 app.include_router(special_offers_mobile.router)
 app.include_router(special_offers_panel.router)
 app.include_router(workers_panel.router)
+app.include_router(worker_panel.router)

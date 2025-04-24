@@ -12,6 +12,7 @@ from app.services.workers.panel import (
     assign_worker_to_restaurant,
     create_worker,
     delete_worker,
+    generate_secure_password,
     get_all_workers,
     get_worker_by_id,
     remove_worker_from_restaurant,
@@ -20,7 +21,6 @@ from app.services.workers.panel import (
 
 class CreateWorkerRequest(BaseModel):
     email: EmailStr
-    password: str
 
 
 router = APIRouter(
@@ -48,7 +48,7 @@ async def add_worker(
     worker_data: CreateWorkerRequest, db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
     return JSONResponse(
-        content=jsonable_encoder(create_worker(worker_data.email, db_ref, worker_data.password)),
+        content=jsonable_encoder(create_worker(worker_data.email, generate_secure_password(), db_ref)),
         status_code=status.HTTP_201_CREATED,
     )
 
