@@ -140,6 +140,28 @@ def delete_special_offer(offer_id: str, db_ref: firestore.Client) -> dict:
     if not offer_doc.exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Special offer with id {offer_id} not found")
 
+    for restaurant_doc in (
+        db_ref.collection(CollectionNames.RESTAURANTS)
+        .where("special_offers", "array_contains", db_ref.collection(CollectionNames.SPECIAL_OFFERS).document(offer_id))
+        .stream()
+    ):
+        restaurant_data = restaurant_doc.to_dict()
+        special_offers = restaurant_data.get("special_offers", [])
+        updated_offers = [offer for offer in special_offers if offer.id != offer_id]
+        db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_doc.id).update(
+            {"special_offers": updated_offers}
+        )
+
+    for user_doc in (
+        db_ref.collection(CollectionNames.USERS)
+        .where("special_offers", "array_contains", db_ref.collection(CollectionNames.SPECIAL_OFFERS).document(offer_id))
+        .stream()
+    ):
+        user_data = user_doc.to_dict()
+        special_offers = user_data.get("special_offers", [])
+        updated_offers = [offer for offer in special_offers if offer.id != offer_id]
+        db_ref.collection(CollectionNames.USERS).document(user_doc.id).update({"special_offers": updated_offers})
+
     db_ref.collection(CollectionNames.SPECIAL_OFFERS).document(offer_id).delete()
 
     return {"message": f"Special offer with id {offer_id} deleted successfully"}
