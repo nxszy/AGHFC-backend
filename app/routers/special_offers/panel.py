@@ -9,14 +9,9 @@ from app.models.user import UserRole
 from app.services.shared.request_handler import handle_request_errors
 from app.services.shared.user_role_handler import role_required
 from app.services.special_offers.panel import (
-    add_special_offer_to_restaurant,
-    create_special_offer,
-    delete_special_offer,
-    get_all_special_offers,
-    get_special_offer_by_id,
-    remove_special_offer_from_restaurant,
-    update_special_offer,
-)
+    add_special_offer_to_restaurant, create_special_offer,
+    delete_special_offer, get_all_special_offers, get_special_offer_by_id,
+    remove_special_offer_from_restaurant, update_special_offer)
 
 
 class CreateSpecialOfferRequest(BaseModel):

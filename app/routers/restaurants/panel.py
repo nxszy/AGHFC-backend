@@ -103,7 +103,13 @@ async def update_special_offers(
     Returns:
         dict: A confirmation message.
     """
-    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update({"special_offers": special_offers})
+    special_offer_refs = [
+        db_ref.collection(CollectionNames.SPECIAL_OFFERS).document(offer_id) for offer_id in special_offers
+    ]
+
+    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update(
+        {"special_offers": special_offer_refs}
+    )
 
     return JSONResponse(content={"message": "Special offers updated successfully"}, status_code=status.HTTP_200_OK)
 

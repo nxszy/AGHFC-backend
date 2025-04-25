@@ -8,9 +8,7 @@ from app.core.database import get_database_ref
 from app.models.user import UserRole
 from app.services.shared.request_handler import handle_request_errors
 from app.services.shared.user_role_handler import role_required
-from app.services.workers.panel import (
-    change_worker_password,
-)
+from app.services.workers.panel import change_worker_password
 
 
 class ChangePasswordRequest(BaseModel):
