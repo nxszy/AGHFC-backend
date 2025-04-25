@@ -6,10 +6,8 @@ from firebase_admin import firestore  # type: ignore
 from app.core.database import get_database_ref
 from app.services.shared.request_handler import handle_request_errors
 from app.services.special_offers.mobile import (
-    generate_special_offer_for_user,
-    get_restaurant_special_offers,
-    get_user_special_offers,
-)
+    generate_special_offer_for_user, get_restaurant_special_offers,
+    get_user_special_offers)
 
 router = APIRouter(
     prefix="/special_offer/mobile",

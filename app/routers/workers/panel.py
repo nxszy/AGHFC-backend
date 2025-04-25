@@ -8,15 +8,11 @@ from app.core.database import get_database_ref
 from app.models.user import UserRole
 from app.services.shared.request_handler import handle_request_errors
 from app.services.shared.user_role_handler import role_required
-from app.services.workers.panel import (
-    assign_worker_to_restaurant,
-    create_worker,
-    delete_worker,
-    generate_secure_password,
-    get_all_workers,
-    get_worker_by_id,
-    remove_worker_from_restaurant,
-)
+from app.services.workers.panel import (assign_worker_to_restaurant,
+                                        create_worker, delete_worker,
+                                        generate_secure_password,
+                                        get_all_workers, get_worker_by_id,
+                                        remove_worker_from_restaurant)
 
 
 class CreateWorkerRequest(BaseModel):

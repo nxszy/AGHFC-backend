@@ -5,7 +5,8 @@ from fastapi import HTTPException, status
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
 
-from app.core.firebase_auth import change_user_password, create_firebase_user, delete_firebase_user
+from app.core.firebase_auth import (change_user_password, create_firebase_user,
+                                    delete_firebase_user)
 from app.models.collection_names import CollectionNames
 from app.models.user import PersistedUser, UserRole
 from app.services.restaurants.shared import check_restaurant_existence

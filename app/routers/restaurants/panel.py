@@ -1,4 +1,3 @@
-from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -8,7 +7,6 @@ from app.core.database import get_database_ref
 from app.models.collection_names import CollectionNames
 from app.models.restaurant import Restaurant
 from app.models.restaurant_dish import RestaurantDish
-from app.models.firestore_ref import FirestoreRef
 from app.services.shared.request_handler import handle_request_errors
 
 router = APIRouter(
@@ -106,18 +104,14 @@ async def update_special_offers(
         dict: A confirmation message.
     """
     special_offer_refs = [
-        db_ref.collection(CollectionNames.SPECIAL_OFFERS).document(offer_id)
-        for offer_id in special_offers
+        db_ref.collection(CollectionNames.SPECIAL_OFFERS).document(offer_id) for offer_id in special_offers
     ]
 
-    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update({
-        "special_offers": special_offer_refs
-    })
-
-    return JSONResponse(
-        content={"message": "Special offers updated successfully"},
-        status_code=status.HTTP_200_OK
+    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update(
+        {"special_offers": special_offer_refs}
     )
+
+    return JSONResponse(content={"message": "Special offers updated successfully"}, status_code=status.HTTP_200_OK)
 
 
 @router.put("/update_menu/{restaurant_id}")
