@@ -12,3 +12,8 @@ class Restaurant(BaseModel):
     address: str
     opening_hours: str
     special_offers: list[Annotated[FirestoreRef, ...]] = []
+
+    class Config:
+        json_encoders = {
+            FirestoreRef: lambda v: v.ref.id
+        }
