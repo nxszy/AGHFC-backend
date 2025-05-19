@@ -74,6 +74,7 @@ def transition_order_to_payment(order_data: PayForOrderPayload, user: User, db_r
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Cannot pay for empty order with id: {order_data.id}.",
         )
+    order.payment_method = order_data.payment_method
     order.total_price, order.total_price_including_special_offers = calculate_order_prices(order, user, db_ref)
     order.points_gained = calculate_order_points(order, db_ref)
     finalize_order_stock(order, order_data.id, db_ref)

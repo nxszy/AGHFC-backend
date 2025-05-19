@@ -32,6 +32,7 @@ class UpdateOrderPayload(BaseModel):
 class PayForOrderPayload(BaseModel):
     id: str
     points: NonNegativeInt = 0
+    payment_method: str
 
 
 class PanelOrdersPayload(BaseModel):
@@ -55,6 +56,7 @@ class PersistedOrder(BaseModel):
     created_at: datetime
     updated_at: datetime
     restaurant_id: Annotated[FirestoreRef, ...]
+    payment_method: str = ''
 
     def finalize_users_loyalty_points(self, user: User,
                                       loyalty_points_used: int,
@@ -81,3 +83,5 @@ class Order(BaseModel):
     created_at: datetime
     updated_at: datetime
     restaurant_id: str
+    payment_method: str = ''
+
