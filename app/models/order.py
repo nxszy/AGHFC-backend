@@ -51,15 +51,20 @@ class PersistedOrder(BaseModel):
     total_price_including_special_offers: float
     status: OrderStatus = OrderStatus.CHECKOUT
     points_used: NonNegativeInt = 0
+    points_gained: NonNegativeInt = 0
     created_at: datetime
     updated_at: datetime
     restaurant_id: Annotated[FirestoreRef, ...]
 
-    def finalize_users_loyalty_points(self, user: User, loyalty_points: int, db_ref: firestore.Client) -> None:
-        if loyalty_points == 0:
+    def finalize_users_loyalty_points(self, user: User,
+                                      loyalty_points_used: int,
+                                      loyalty_points_gained: int,
+                                      db_ref: firestore.Client) -> None:
+        if loyalty_points_gained == 0:
             return
-        self.points_used = min(loyalty_points, user.points, int(self.total_price_including_special_offers))
+        self.points_used = min(loyalty_points_used, user.points, int(self.total_price_including_special_offers))
         user.points -= self.points_used
+        user.points += loyalty_points_gained
 
         db_ref.collection(CollectionNames.USERS).document(user.id).update({"points": user.points})
 
@@ -72,6 +77,7 @@ class Order(BaseModel):
     total_price_including_special_offers: float
     status: OrderStatus = OrderStatus.CHECKOUT
     points_used: NonNegativeInt = 0
+    points_gained: NonNegativeInt = 0
     created_at: datetime
     updated_at: datetime
     restaurant_id: str
