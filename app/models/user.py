@@ -22,3 +22,8 @@ class PersistedUser(BaseModel):
 
 class User(PersistedUser):
     id: str
+
+class DisplayedUser(BaseModel):
+    id: str
+    email: str
+    points: int

@@ -35,7 +35,7 @@ def user_with_specified_points(points):
 def test_no_loyalty_points_used(mock_order, mock_db_ref):
     user = user_with_specified_points(100)
 
-    mock_order.finalize_users_loyalty_points(user, 0, mock_db_ref)
+    mock_order.finalize_users_loyalty_points(user, 0, 0, mock_db_ref)
 
     assert mock_order.points_used == 0
     assert user.points == 100
@@ -45,7 +45,7 @@ def test_no_loyalty_points_used(mock_order, mock_db_ref):
 def test_loyalty_points_used_within_limits(mock_order, mock_db_ref):
     user = user_with_specified_points(20)
 
-    mock_order.finalize_users_loyalty_points(user, 15, mock_db_ref)
+    mock_order.finalize_users_loyalty_points(user, 15, 0, mock_db_ref)
 
     assert mock_order.points_used == 15
     assert user.points == 5
@@ -56,7 +56,7 @@ def test_loyalty_points_used_within_limits(mock_order, mock_db_ref):
 def test_loyalty_points_exceeds_user_points(mock_order, mock_db_ref):
     user = user_with_specified_points(10)
 
-    mock_order.finalize_users_loyalty_points(user, 50, mock_db_ref)
+    mock_order.finalize_users_loyalty_points(user, 50, 0, mock_db_ref)
 
     assert mock_order.points_used == 10
     assert user.points == 0
@@ -67,7 +67,7 @@ def test_loyalty_points_exceeds_price(mock_order, mock_db_ref):
     user = user_with_specified_points(50)
     mock_order.total_price_including_special_offers = 20
 
-    mock_order.finalize_users_loyalty_points(user, 40, mock_db_ref)
+    mock_order.finalize_users_loyalty_points(user, 40, 0, mock_db_ref)
 
     assert mock_order.points_used == 20
     assert user.points == 30

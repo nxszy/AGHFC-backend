@@ -44,7 +44,20 @@ def calculate_order_prices(order: PersistedOrder, user: User, db_ref: firestore.
         return acc + float(dish_prices_including_special_offers[id] * order_items[id])
 
     total_including_discounts = reduce(sum_order_total_special_offers, dish_ids, 0.0)
-    return order_total, total_including_discounts
+    return round(order_total, 2), round(total_including_discounts, 2)
+
+
+def calculate_order_points(order: PersistedOrder, db_ref: firestore.Client) -> int:
+    order_items = order.order_items
+    dish_ids = list(order_items.keys())
+    dish_refs = [db_ref.collection(CollectionNames.DISHES).document(dish_id) for dish_id in dish_ids]
+    dishes_docs = db_ref.get_all(dish_refs)
+    total_points = 0
+
+    for dish in dishes_docs:
+        total_points += int(order_items[dish.id] * dish.to_dict().get("points"))
+
+    return total_points
 
 
 def check_restaurant_dishes_existence(order: CreateOrderPayload, db_ref: firestore.Client) -> None:
@@ -75,7 +88,7 @@ def check_restaurant_dishes_existence(order: CreateOrderPayload, db_ref: firesto
 
 
 def check_order_validity_and_ownership(
-    order_id: str, expected_state: OrderStatus | None, current_user: User | None, db_ref: firestore.Client
+        order_id: str, expected_state: OrderStatus | None, current_user: User | None, db_ref: firestore.Client
 ) -> PersistedOrder:
     order_doc = db_ref.collection(CollectionNames.ORDERS).document(order_id).get()
     order_dict = order_doc.to_dict() if order_doc.exists else {}

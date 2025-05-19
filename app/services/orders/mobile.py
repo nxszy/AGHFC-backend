@@ -11,7 +11,7 @@ from app.models.order import (CreateOrderPayload, Order, OrderStatus,
 from app.models.user import User
 from app.services.restaurants.shared import check_restaurant_existence
 
-from .shared import (calculate_order_prices,
+from .shared import (calculate_order_prices, calculate_order_points,
                      check_order_validity_and_ownership,
                      check_restaurant_dishes_existence, finalize_order_stock)
 
@@ -34,6 +34,7 @@ def create_order(order_data: CreateOrderPayload, user: User, db_ref: firestore.C
     (result_order.total_price, result_order.total_price_including_special_offers) = calculate_order_prices(
         result_order, user, db_ref
     )
+    result_order.points_gained = calculate_order_points(result_order, db_ref)
 
     return result_order
 
@@ -46,6 +47,7 @@ def update_order_items(order_data: UpdateOrderPayload, user: User, db_ref: fires
 
     order.order_items = order_data.order_items
     order.total_price, order.total_price_including_special_offers = calculate_order_prices(order, user, db_ref)
+    order.points_gained = calculate_order_points(order, db_ref)
     order.updated_at = datetime.now(UTC)
     return order
 
@@ -72,9 +74,11 @@ def transition_order_to_payment(order_data: PayForOrderPayload, user: User, db_r
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Cannot pay for empty order with id: {order_data.id}.",
         )
+    order.payment_method = order_data.payment_method
     order.total_price, order.total_price_including_special_offers = calculate_order_prices(order, user, db_ref)
+    order.points_gained = calculate_order_points(order, db_ref)
     finalize_order_stock(order, order_data.id, db_ref)
-    order.finalize_users_loyalty_points(user, order_data.points, db_ref)
+    order.finalize_users_loyalty_points(user, order_data.points, order.points_gained, db_ref)
     order.status = OrderStatus.PAID
     order.updated_at = datetime.now(UTC)
 
