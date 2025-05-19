@@ -5,3 +5,4 @@ class Dish(BaseModel):
     name: str
     description: str
     price: float
+    points: int
