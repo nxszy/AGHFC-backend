@@ -62,7 +62,7 @@ class PersistedOrder(BaseModel):
                                       loyalty_points_used: int,
                                       loyalty_points_gained: int,
                                       db_ref: firestore.Client) -> None:
-        if loyalty_points_gained == 0:
+        if loyalty_points_used == 0:
             return
         self.points_used = min(loyalty_points_used, user.points, int(self.total_price_including_special_offers))
         user.points -= self.points_used
