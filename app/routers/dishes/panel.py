@@ -28,7 +28,9 @@ async def get_dish_by_id(dish_id: str, db_ref: firestore.Client = Depends(get_da
     doc = db_ref.collection(CollectionNames.DISHES).document(dish_id).get()
     if not doc.exists:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dish not found")
-    dish = Dish(**doc.to_dict())
+    data = doc.to_dict()
+    data["price"] = data.pop("base_price")
+    dish = Dish(**data)
     return JSONResponse(content=jsonable_encoder(dish), status_code=status.HTTP_200_OK)
 
 
@@ -61,8 +63,8 @@ async def add_dish(dish: Dish, db_ref: firestore.Client = Depends(get_database_r
         Response: FastAPI response with the added dish data, including generated ID.
     """
     dish_dict = dish.model_dump()
-    ref, _ = db_ref.collection(CollectionNames.DISHES).add(dish_dict)
-    created = {**dish_dict, "id": ref.id}
+    write_time, doc_ref = db_ref.collection(CollectionNames.DISHES).add(dish_dict)
+    created = {**dish_dict, "id": doc_ref.id}
     return JSONResponse(content=jsonable_encoder(created), status_code=status.HTTP_201_CREATED)
 
 
