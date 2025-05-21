@@ -39,18 +39,15 @@ async def get_restaurant_by_id(restaurant_id: str, db_ref: firestore.Client = De
 @router.post("/add_restaurant")
 @handle_request_errors
 async def add_restaurant(restaurant: Restaurant, db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
-    """Add a new restaurant to the database.
+    """Add a new restaurant to the database."""
 
-    Args:
-        restaurant (Restaurant): The restaurant object to add.
+    restaurant_dict = restaurant.model_dump(exclude={"id"})
 
-    Returns:
-        Response: FastAPI response with the added restaurant data.
-    """
-    restaurant_dict = restaurant.model_dump()
-    db_ref.collection(CollectionNames.RESTAURANTS).add(restaurant_dict)
+    doc_ref = db_ref.collection(CollectionNames.RESTAURANTS).add(restaurant_dict)[1]
 
-    return JSONResponse(content=restaurant_dict, status_code=status.HTTP_201_CREATED)
+    restaurant_with_id = restaurant.model_copy(update={"id": doc_ref.id})
+
+    return JSONResponse(content=jsonable_encoder(restaurant_with_id), status_code=status.HTTP_201_CREATED)
 
 
 @router.put("/update_restaurant/{restaurant_id}")
@@ -67,10 +64,13 @@ async def update_restaurant(
     Returns:
         Response: FastAPI response with the updated restaurant data.
     """
-    restaurant_dict = restaurant.model_dump()
-    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).set(restaurant_dict)
+    restaurant_dict = restaurant.model_dump(exclude={"id"})
 
-    return JSONResponse(content=restaurant_dict, status_code=status.HTTP_200_OK)
+    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update(restaurant_dict)
+
+    restaurant_with_id = restaurant.model_copy(update={"id": restaurant_id})
+
+    return JSONResponse(content=jsonable_encoder(restaurant_with_id), status_code=status.HTTP_200_OK)
 
 
 @router.delete("/delete_restaurant/{restaurant_id}")
