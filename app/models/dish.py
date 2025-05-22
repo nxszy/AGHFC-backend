@@ -9,3 +9,4 @@ class Dish(BaseModel):
     ingredients: str
     price: float
     points: int
+    
