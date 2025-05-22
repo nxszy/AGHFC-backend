@@ -88,7 +88,7 @@ def check_restaurant_dishes_existence(order: CreateOrderPayload, db_ref: firesto
 
 
 def check_order_validity_and_ownership(
-        order_id: str, expected_state: OrderStatus | None, current_user: User | None, db_ref: firestore.Client
+    order_id: str, expected_state: OrderStatus | None, current_user: User | None, db_ref: firestore.Client
 ) -> PersistedOrder:
     order_doc = db_ref.collection(CollectionNames.ORDERS).document(order_id).get()
     order_dict = order_doc.to_dict() if order_doc.exists else {}

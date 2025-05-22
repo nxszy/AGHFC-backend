@@ -14,6 +14,4 @@ class Restaurant(BaseModel):
     special_offers: list[Annotated[FirestoreRef, ...]] = []
 
     class Config:
-        json_encoders = {
-            FirestoreRef: lambda v: v.ref.id
-        }
+        json_encoders = {FirestoreRef: lambda v: v.ref.id}

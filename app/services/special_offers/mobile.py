@@ -44,6 +44,7 @@ def get_restaurant_special_offers(restaurant_id: str, db_ref: firestore.Client) 
         result.append(
             {
                 "id": doc.id,
+                "name": offer_data.get("name"),
                 "dish_id": dish_ref.id,
                 "dish_name": dish_data.get("name"),
                 "dish_description": dish_data.get("description"),

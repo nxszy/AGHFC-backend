@@ -12,9 +12,9 @@ from app.routers.restaurants import mobile as restaurant_mobile
 from app.routers.restaurants import panel as panel_mobile
 from app.routers.special_offers import mobile as special_offers_mobile
 from app.routers.special_offers import panel as special_offers_panel
+from app.routers.users import mobile as users_mobile
 from app.routers.workers import panel as workers_panel
 from app.routers.workers import worker_panel as worker_panel
-from app.routers.users import mobile as users_mobile
 
 security_scheme = HTTPBearer()
 

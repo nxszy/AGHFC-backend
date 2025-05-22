@@ -89,38 +89,31 @@ async def delete_restaurant(restaurant_id: str, db_ref: firestore.Client = Depen
     return JSONResponse(content={"message": "Restaurant deleted successfully"}, status_code=status.HTTP_200_OK)
 
 
-@router.put("/update_special_offers/{restaurant_id}")
-@handle_request_errors
-async def update_special_offers(
-    restaurant_id: str, special_offers: list[str], db_ref: firestore.Client = Depends(get_database_ref)
-) -> Response:
-    """Update the special offers for a restaurant.
-
-    Args:
-        restaurant_id (str): The ID of the restaurant.
-        special_offers (list[str]): The updated list of special offers ids (refs).
-
-    Returns:
-        dict: A confirmation message.
-    """
-    special_offer_refs = [
-        db_ref.collection(CollectionNames.SPECIAL_OFFERS).document(offer_id) for offer_id in special_offers
-    ]
-
-    db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id).update(
-        {"special_offers": special_offer_refs}
-    )
-
-    return JSONResponse(content={"message": "Special offers updated successfully"}, status_code=status.HTTP_200_OK)
-
-
-@router.put("/update_menu/{restaurant_id}")
+@router.put("/update_menu/{restaurant_id}/{dish_id}")
 @handle_request_errors
 async def update_menu(
     restaurant_id: str, dish_id: str, db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
-    restaurant_ref = db_ref.collection(CollectionNames.RESTAURANT_DISHES).document(restaurant_id)
-    dish_ref = db_ref.collection(CollectionNames.RESTAURANT_DISHES).document(dish_id)
+    restaurant_ref = db_ref.collection(CollectionNames.RESTAURANTS).document(restaurant_id)
+
+    if not restaurant_ref.get().exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Restaurant not found")
+
+    dish_ref = db_ref.collection(CollectionNames.DISHES).document(dish_id)
+
+    if not dish_ref.get().exists:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dish not found")
+
+    restaurant_dishes = (
+        db_ref.collection(CollectionNames.RESTAURANT_DISHES)
+        .where("restaurant_id", "==", restaurant_ref)
+        .where("dish_id", "==", dish_ref)
+        .get()
+    )
+
+    if restaurant_dishes:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Dish already in restaurant menu")
+
     restaurant_dish_dict = RestaurantDish(
         restaurant_id=restaurant_ref, dish_id=dish_ref, is_available=False, stock_count=0
     ).model_dump()

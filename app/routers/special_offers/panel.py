@@ -16,6 +16,7 @@ from app.services.special_offers.panel import (
 
 class CreateSpecialOfferRequest(BaseModel):
     dish_id: str
+    name: str
     special_price: float
 
 

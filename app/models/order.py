@@ -56,12 +56,11 @@ class PersistedOrder(BaseModel):
     created_at: datetime
     updated_at: datetime
     restaurant_id: Annotated[FirestoreRef, ...]
-    payment_method: str = ''
+    payment_method: str = ""
 
-    def finalize_users_loyalty_points(self, user: User,
-                                      loyalty_points_used: int,
-                                      loyalty_points_gained: int,
-                                      db_ref: firestore.Client) -> None:
+    def finalize_users_loyalty_points(
+        self, user: User, loyalty_points_used: int, loyalty_points_gained: int, db_ref: firestore.Client
+    ) -> None:
         if loyalty_points_used == 0:
             return
         self.points_used = min(loyalty_points_used, user.points, int(self.total_price_including_special_offers))
@@ -83,5 +82,4 @@ class Order(BaseModel):
     created_at: datetime
     updated_at: datetime
     restaurant_id: str
-    payment_method: str = ''
-
+    payment_method: str = ""

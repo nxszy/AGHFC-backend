@@ -13,6 +13,7 @@ router = APIRouter(
     tags=["mobile orders"],
 )
 
+
 @handle_request_errors
 @router.get("/get_all_opinions")
 async def get_all_opinions(db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
@@ -26,7 +27,7 @@ async def get_all_opinions(db_ref: firestore.Client = Depends(get_database_ref))
     opinions = []
     for doc in opinion_docs:
         data = doc.to_dict()
-        data['id'] = doc.id
+        data["id"] = doc.id
         opinions.append(Opinion(**data))
 
     json_compatible_docs = jsonable_encoder(opinions)
@@ -36,9 +37,7 @@ async def get_all_opinions(db_ref: firestore.Client = Depends(get_database_ref))
 
 @handle_request_errors
 @router.post("/add_opinion")
-async def add_opinion(
-    opinion_data: Opinion, db_ref: firestore.Client = Depends(get_database_ref)
-) -> Response:
+async def add_opinion(opinion_data: Opinion, db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
     """Add an opinion.
 
     Returns:
@@ -47,9 +46,9 @@ async def add_opinion(
 
     opinion = opinion_data.model_dump(exclude={"id"})
     _, opinion_doc = db_ref.collection(CollectionNames.OPINIONS).add(opinion)
-    opinion = opinion_data.model_copy(update={"id": opinion_doc.id})
+    opinion_with_id = opinion_data.model_copy(update={"id": opinion_doc.id})
 
-    return JSONResponse(content=jsonable_encoder(opinion.model_dump()), status_code=status.HTTP_201_CREATED)
+    return JSONResponse(content=jsonable_encoder(opinion_with_id.model_dump()), status_code=status.HTTP_201_CREATED)
 
 
 @handle_request_errors
@@ -71,9 +70,7 @@ async def update_opinion(
 
 @handle_request_errors
 @router.delete("/delete_opinion/{opinion_id}")
-async def delete_opinion(
-    opinion_id: str, db_ref: firestore.Client = Depends(get_database_ref)
-) -> Response:
+async def delete_opinion(opinion_id: str, db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
     """Delete an opinion.
 
     Returns:
