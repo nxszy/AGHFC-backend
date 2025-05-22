@@ -1,5 +1,4 @@
 from typing import Optional
-from app.models.firestore_ref import FirestoreRef
 from pydantic import BaseModel, Field
 
 
@@ -10,8 +9,3 @@ class Dish(BaseModel):
     ingredients: str
     price: float
     points: int
-
-    class Config:
-        json_encoders = {
-            FirestoreRef: lambda v: v.ref.id
-        }
