@@ -52,6 +52,7 @@ async def get_available_dishes(
 
         dish_data = dish_doc.to_dict()
         dish_data['price'] = dish_data['base_price']
+        dish_data['id'] = dish_doc.id
         dish_payload = {
             **jsonable_encoder(Dish(**dish_data)),
             "stock_count": rd["stock_count"],
