@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from firebase_admin import firestore
+from firebase_admin import firestore  # type: ignore
 from pydantic import BaseModel, Field
 
 from app.core.database import get_database_ref

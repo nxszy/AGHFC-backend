@@ -62,7 +62,7 @@ async def add_dish(dish: Dish, db_ref: firestore.Client = Depends(get_database_r
     Returns:
         Response: FastAPI response with the added dish data, including generated ID.
     """
-    dish_dict = dish.model_dump()
+    dish_dict = dish.model_dump(exclude={"id"})
     write_time, doc_ref = db_ref.collection(CollectionNames.DISHES).add(dish_dict)
     created = {**dish_dict, "id": doc_ref.id}
     return JSONResponse(content=jsonable_encoder(created), status_code=status.HTTP_201_CREATED)

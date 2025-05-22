@@ -27,7 +27,7 @@ async def get_all_restaurants(db_ref: firestore.Client = Depends(get_database_re
     restaurants = []
     for doc in restaurant_docs:
         data = doc.to_dict()
-        data['id'] = doc.id
+        data["id"] = doc.id
         restaurants.append(Restaurant(**data))
 
     json_compatible_docs = jsonable_encoder(restaurants)

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Request, Response, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from app.models.user import DisplayedUser
 
+from app.models.user import DisplayedUser
 from app.services.shared.request_handler import handle_request_errors
 
 router = APIRouter(
@@ -14,7 +14,7 @@ router = APIRouter(
 @handle_request_errors
 @router.get("/me")
 async def get_user_data(
-        request: Request,
+    request: Request,
 ) -> Response:
     displayed_user = DisplayedUser(**request.state.user.model_dump())
 

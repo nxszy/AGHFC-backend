@@ -46,7 +46,7 @@ def verify_firebase_token(token: str) -> Any:
         raise HTTPException(status_code=401, detail=f"Unable to authenticate: {str(e)}.")
 
 
-def create_firebase_user(email: str, password: str) -> str:
+def create_firebase_user(email: str, password: str) -> Any | str:
     try:
         user = auth.create_user(email=email, email_verified=False, password=password, disabled=False)
         return user.uid

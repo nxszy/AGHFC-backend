@@ -11,7 +11,7 @@ from app.models.order import (CreateOrderPayload, Order, OrderStatus,
 from app.models.user import User
 from app.services.restaurants.shared import check_restaurant_existence
 
-from .shared import (calculate_order_prices, calculate_order_points,
+from .shared import (calculate_order_points, calculate_order_prices,
                      check_order_validity_and_ownership,
                      check_restaurant_dishes_existence, finalize_order_stock)
 
