@@ -9,7 +9,7 @@ from app.models.opinion import Opinion
 from app.services.shared.request_handler import handle_request_errors
 
 router = APIRouter(
-    prefix="/order/mobile",
+    prefix="/opinion/mobile",
     tags=["mobile orders"],
 )
 
@@ -52,7 +52,7 @@ async def add_opinion(opinion_data: Opinion, db_ref: firestore.Client = Depends(
 
 
 @handle_request_errors
-@router.post("/update_opinion")
+@router.put("/update_opinion")
 async def update_opinion(
     opinion_id: str, opinion_data: Opinion, db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
