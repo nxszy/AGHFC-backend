@@ -56,7 +56,7 @@ async def add_opinion(opinion_data: OpinionCreate, db_ref: firestore.Client = De
     _, opinion_doc = db_ref.collection(CollectionNames.OPINIONS).add(opinion_dict)
     opinion_with_id = opinion.model_copy(update={"id": opinion_doc.id})
 
-    return JSONResponse(content=jsonable_encoder(opinion_with_id.model_dump()), status_code=status.HTTP_201_CREATED)
+    return JSONResponse(content=jsonable_encoder(opinion_with_id), status_code=status.HTTP_201_CREATED)
 
 
 @handle_request_errors
