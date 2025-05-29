@@ -5,6 +5,14 @@ from pydantic import BaseModel, Field
 from app.models.firestore_ref import FirestoreRef
 
 
+class OpinionCreate(BaseModel):
+    restaurant_id: str
+    user_id: str
+    dish_id: str
+    rating: int
+    comment: Optional[str] = None
+    
+
 class Opinion(BaseModel):
     id: Optional[str] = Field(default=None, description="Firestore document ID")
     restaurant_id: Annotated[FirestoreRef, ...]
