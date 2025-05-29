@@ -15,6 +15,7 @@ from app.routers.special_offers import panel as special_offers_panel
 from app.routers.users import mobile as users_mobile
 from app.routers.workers import panel as workers_panel
 from app.routers.workers import worker_panel as worker_panel
+from app.routers.opinions import mobile as opinions_mobile
 
 security_scheme = HTTPBearer()
 
@@ -38,3 +39,4 @@ app.include_router(dishes_mobile.router)
 app.include_router(dishes_panel.router)
 app.include_router(restaurant_dishes_panel.router)
 app.include_router(users_mobile.router)
+app.include_router(opinions_mobile.router)
