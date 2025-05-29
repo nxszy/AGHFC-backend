@@ -42,7 +42,6 @@ async def get_all_opinions(db_ref: firestore.Client = Depends(get_database_ref))
 async def add_opinion(opinion_data: OpinionCreate, db_ref: firestore.Client = Depends(get_database_ref)) -> Response:
     """Add an opinion with created_at and string IDs from frontend."""
 
-    # Convert string IDs to FirestoreRef
     opinion = Opinion(
         restaurant_id=FirestoreRef(db_ref.collection(CollectionNames.RESTAURANTS).document(opinion_data.restaurant_id)),
         user_id=FirestoreRef(db_ref.collection(CollectionNames.USERS).document(opinion_data.user_id)),
@@ -62,16 +61,34 @@ async def add_opinion(opinion_data: OpinionCreate, db_ref: firestore.Client = De
 @handle_request_errors
 @router.put("/update_opinion")
 async def update_opinion(
-    opinion_id: str, opinion_data: Opinion, db_ref: firestore.Client = Depends(get_database_ref)
+    opinion_id: str, opinion_data: OpinionCreate, db_ref: firestore.Client = Depends(get_database_ref)
 ) -> Response:
     """Update an opinion.
 
     Returns:
         dict: A dictionary containing updated opinion
     """
-    opinion_dict = opinion_data.model_dump(exclude={"id"})
-    db_ref.collection(CollectionNames.OPINIONS).document(opinion_data.id).set(opinion_dict)
-    opinion_with_id = opinion_data.model_copy(update={"id": opinion_id})
+    doc_ref = db_ref.collection(CollectionNames.OPINIONS).document(opinion_id)
+    existing_doc = doc_ref.get()
+    if not existing_doc.exists:
+        return JSONResponse(content={"error": "Opinion not found"}, status_code=status.HTTP_404_NOT_FOUND)
+    
+    existing_data = existing_doc.to_dict()
+    created_at = existing_data.get("created_at")
+
+    opinion = Opinion(
+        id=opinion_id,
+        restaurant_id=FirestoreRef(db_ref.collection(CollectionNames.RESTAURANTS).document(opinion_data.restaurant_id)),
+        user_id=FirestoreRef(db_ref.collection(CollectionNames.USERS).document(opinion_data.user_id)),
+        dish_id=FirestoreRef(db_ref.collection(CollectionNames.DISHES).document(opinion_data.dish_id)),
+        rating=opinion_data.rating,
+        comment=opinion_data.comment,
+        created_at=created_at
+    )
+
+    opinion_dict = opinion.model_dump(exclude={"id"})
+    doc_ref.set(opinion_dict)
+    opinion_with_id = opinion.model_copy(update={"id": opinion_id})
 
     return JSONResponse(content=jsonable_encoder(opinion_with_id), status_code=status.HTTP_201_CREATED)
 
